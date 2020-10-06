@@ -301,7 +301,7 @@ weather_df %>%
 
 Shifting the legend
 
-```{r}
+```{r, eval = FALSE}
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax, color = name)) +
   geom_point(alpha = .5) +
