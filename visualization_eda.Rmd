@@ -1,0 +1,241 @@
+---
+title: "visualization_eda"
+author: "Leighanne Wang"
+date: "10/6/2020"
+output: github_document
+---
+
+```{r setup}
+library(tidyverse)
+library(ggridges)
+
+```
+
+## Load weather data
+
+```{r weather_df}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+
+weather_df
+```
+
+## Different ways to create a Scatterplot
+
+Create first scatterplot:
+```{r}
+ggplot(weather_df, aes(x = tmin, y = tmax)) +
+  geom_point()
+```
+
+New approach, same plot:
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_point()
+```
+
+Save and edit plot object
+```{r}
+#create a plot
+weather_plot =
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax))
+
+#add to the plot
+weather_plot + geom_point()
+```
+
+## Advanced Scatterplot
+
+color
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point()
+```
+
+smoothing
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point() +
+  geom_smooth(se = FALSE)
+```
+
+'aes' placement
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_point(aes(color = name))
+
+# ends up being the same as the first graph
+```
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + #having aes here is a global command
+  geom_point(aes(color = name)) + #color only gets applied to scatterplot not to the entire thing like geom smooth
+  geom_smooth()
+```
+
+faceting
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = .5) + #alpha changes the transparency for the dots 
+  geom_smooth(se = FALSE, size = 2) + # size changes the size of the line
+  facet_grid(. ~ name)
+  #. means don't create rows, create columns by variable name 
+```
+
+combine elements to create new plot
+```{r}
+weather_df %>% 
+  ggplot(aes(x = date, y = tmax, color = name)) +
+  geom_point(aes(size = prcp), alpha = .5) +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ name)
+```
+
+## Small notes
+
+how many geoms have to exist? as many as you want!
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_smooth(se = FALSE)
+```
+
+you can use a neat geom
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex()
+```
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_density2d() +
+  geom_point(alpha = .3)
+```
+
+
+## Univariate plots
+
+####Histograms
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin)) +
+  geom_histogram()
+```
+
+adding color
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, fill = name)) + #fill instead of color to make the whole bar that color
+  geom_histogram(position = "dodge") #position dodge is to move it so that they're different location
+```
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, fill = name)) + #fill instead of color to make the whole bar that color
+  geom_histogram()
+  facet_grid(. ~ name)
+```
+
+new geometry
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, fill = name)) +
+  geom_density(alpha = .3)
+```
+
+#### boxplots
+
+```{r}
+weather_df %>% 
+  ggplot(aes(y = tmin)) +
+  geom_boxplot()
+```
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmin)) +
+  geom_boxplot()
+```
+
+#### trendy plots
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmin, fill = name)) +
+  geom_violin()
+  stat_summary()
+```
+
+ridge plots
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = name)) +
+  geom_density_ridges()
+```
+
+## Save and Embed
+
+save a scatterplot
+
+```{r}
+weather_plot =
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = .5)
+
+ggsave("./results/weather_plot.pdf", weather_plot, width = 8, height = 5)
+```
+
+embed
+```{r, fig.width=6, fig.height=3}
+weather_plot
+```
+
+```{r, fig.width=12, fig.height=6}
+weather_plot
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
